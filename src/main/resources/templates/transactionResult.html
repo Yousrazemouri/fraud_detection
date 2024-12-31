@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction Result</title>
+    <link rel="stylesheet" href="/styles.css"> <!-- Link to your CSS -->
+</head>
+<body>
+
+<h1>Transaction Result</h1>
+
+<!-- Display result of the transaction prediction -->
+<div th:if="${prediction}">
+    <p><strong>Prediction: </strong> <span th:text="${prediction}"></span></p>
+</div>
+
+<!-- Display error message if there is one -->
+<div th:if="${error}">
+    <p style="color: red;"><strong>Error:</strong> <span th:text="${error}"></span></p>
+</div>
+
+<!-- Back to the transaction form -->
+<a href="/transaction">Go back to the transaction form</a>
+
+</body>
+</html>
