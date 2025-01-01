@@ -1,14 +1,16 @@
 package org.example.fraud_project.Web;
-
 import org.example.fraud_project.dao.entity.Transaction;
 import org.example.fraud_project.service.transactionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 public class TransactionControler {
@@ -31,11 +33,11 @@ public class TransactionControler {
         return "transaction"; // This will resolve to 'transaction.html' (or equivalent template)
     }
 
-    // Handle the form submission and call the Flask API for fraud prediction (POST method)
+    // Handle the form submission and call the Flask API for fraud_img.jpeg prediction (POST method)
     @PostMapping("/predict")
     public String predictFraud(@ModelAttribute Transaction transaction, Model model) {
         try {
-            // Prepare the transaction features for prediction
+            // Prepare the transaction features for prediction as an array
             double[] features = new double[30];
             features[0] = transaction.getTime();
             features[1] = transaction.getV1();
@@ -66,14 +68,21 @@ public class TransactionControler {
             features[26] = transaction.getV26();
             features[27] = transaction.getV27();
             features[28] = transaction.getV28();
-            features[29] = transaction.getAmount();
+            features[29] = transaction.getAmount(); // Assuming amount is included in the 30 features
 
-            // Build the URL with the features to pass to Flask API
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(API_URL)
-                    .queryParam("features", features);
+            // Build the request body as a JSON object with the features
+            Map<String, Object> requestPayload = new HashMap<>();
+            requestPayload.put("features", features);
 
-            // Send a POST request to Flask API
-            ResponseEntity<String> response = restTemplate.postForEntity(builder.toUriString(), transaction, String.class);
+            // Set the headers for the POST request (Content-Type: application/json)
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // Create an HttpEntity with the request body and headers
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestPayload, headers);
+
+            // Send a POST request to Flask API with the features as JSON
+            ResponseEntity<String> response = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, String.class);
 
             // Get the prediction result from the response
             String prediction = response.getBody();

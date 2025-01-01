@@ -1,8 +1,7 @@
 package org.example.fraud_project.Config;
 
-
-
-
+import org.example.fraud_project.service.AppuserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,30 +14,37 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class ConfigSecurity {
 
-    // This bean defines the security filter chain, which contains the security configurations.
+    @Autowired
+    private AppuserService appuserService; // Inject your custom UserDetailsService
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-
-
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/predict") // Disable CSRF for /predict endpoint
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers( "/register").permitAll()
-                        .requestMatchers("/login").permitAll() // Allow public access to login and register endpoints.
-                        .anyRequest().authenticated()  // Require authentication for all other requests.
+                        .requestMatchers("/", "/register", "/login", "/login.css").permitAll() // Allow public access
+                        .anyRequest().authenticated() // Require authentication for all other requests
                 )
                 .formLogin(form -> form
-                        .defaultSuccessUrl("/", true)  // Redirect to /transaction after successful login.
+                        .loginPage("/login") // Specify your custom login page
+                        .defaultSuccessUrl("/", true) // Redirect after successful login
+                        .failureUrl("/login?error=true") // Redirect after login failure
+                        .permitAll()
                 )
                 .logout(config -> config
-                        .logoutSuccessUrl("/login")  // Redirect to /login after logout.
+                        .logoutUrl("/perform_logout") // The URL to trigger logout
+                        .logoutSuccessUrl("/login") // Redirect after logout
+                        .deleteCookies("JSESSIONID") // Remove session cookies
+                        .permitAll()
                 )
+                .userDetailsService(appuserService) // Use your custom UserDetailsService for authentication
                 .build();
     }
 
-    // Bean for PasswordEncoder, required for encoding passwords (e.g., BCrypt).
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Password encoder for secure password comparison
     }
 }

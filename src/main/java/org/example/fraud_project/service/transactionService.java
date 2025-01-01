@@ -19,7 +19,7 @@ public class transactionService {
     }
 
     public Transaction saveTransaction(Transaction transaction) {
-        // Send transaction data to Flask API for fraud prediction
+        // Send transaction data to Flask API for fraud_img.jpeg prediction
         String apiUrl = "http://127.0.0.1:5001/predict"; // Flask API URL
         String prediction = restTemplate.postForObject(apiUrl, transaction, String.class);
         transaction.setPredictionResult(prediction);
